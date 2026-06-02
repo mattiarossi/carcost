@@ -1,0 +1,14 @@
+Configura Toyota C-HR+ Premium
+Motore elettrico 343 CV
+Full Electric
+
+Motore elettrico 343 CV, Cambio automatico
+Combinato (kWh/100km) - WLTP	15,7 kWh/100km
+Emissioni CO2 (g/km) max - WLTP	0 g/km
+Emissioni CO2 (g/km) - WLTP	0 g/km
+Emissioni NOx (g/km) - WLTP	0 g/km
+Percorrenza max in EV (combinato) - WLTP	507 km
+Percorrenza max in EV (combinato) - WLTP	507 km
+Classe di emissioni	AX 
+Capacità della batteria (kWh)	77 kWh
+Tempo di ricarica della batteria da 10% a 80% (min)	28 min

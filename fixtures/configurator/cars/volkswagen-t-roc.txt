@@ -1,0 +1,24 @@
+La tua Volkswagen
+Nuovo T-Roc. Style Volkswagen
+Nuovo T-Roc Style 1.5 eTSI ACT 110 kW (150 CV) DSG
+Mild Hybrid Automatico Trazione anteriore
+
+Dati tecnici
+Consumo ed emissioni WLTP
+Benzina
+Consumo ciclo di prova basso: 7,20 l/100km
+Consumo ciclo di prova medio: 5,30 l/100km
+Consumo ciclo di prova alto: 4,90 l/100km
+Consumo ciclo di prova extra alto: 6,00 l/100km
+Consumo ciclo di prova combinato: 5,70 l/100km
+Emissioni CO2 ciclo di prova combinato 130 g/km
+MOTORE
+Tipologia motore 4 cilindri - Ciclo Otto
+Cilindrata 1.498
+Potenza massima 110 kW
+Potenza massima motore termico 110 kW (150 CV)
+Coppia massima motore termico, Nm 250 / 1.500 - 3.500
+Potenza massima combinata del sistema 110 kW (150 CV)
+Coppia massima combinata del sistema, Nm 250Nm
+Classe di emissione gas di scarico EURO 6E
+Tipologia cambio DSG - 7 rapporti

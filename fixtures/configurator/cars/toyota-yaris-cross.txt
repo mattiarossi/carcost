@@ -1,0 +1,9 @@
+Configura Yaris Cross Lounge
+1.5 Hybrid 130
+Full Hybrid
+
+1.5 Hybrid 130, e-CVT
+Combinato (l/100km) - WLTP	4,8 l/100 km
+Emissioni CO2 (g/km) - WLTP	109 g/km
+Emissioni NOx (g/km) - WLTP	0,0089 g/km
+I valori indicati, riguardanti il consumo di carburante e le emissioni di CO2 e NOx sono calcolati secondo il ciclo di guida combinato (legislazione applicabile) e fanno riferimento al valore limite fissato per legge per gli Euro 6 rilevato con procedura di prova WLTP - Worldwide harmonized Light vehicles Test Procedure ai sensi del Regolamento UE 2017/1151.

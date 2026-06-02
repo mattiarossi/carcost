@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# SQLite database
+data/*.db
+data/*.db-shm
+data/*.db-wal
+
+# Vite
+.vite/
+
+# TanStack Router generated file
+src/client/routeTree.gen.ts
+
+# Environment
+.env
+.env.local
+
+# OS
+.DS_Store
+
+# Scratch files
+tmp_*.ts
+tmp_*.mjs
+test_*.ts
+*.ts.new
+SCRATCH.MD
+PLAN.MD
+PLAN.html
+
+# TanStack Router runtime cache
+.tanstack/
