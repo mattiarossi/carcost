@@ -61,7 +61,7 @@ The goal is to turn an opaque, marketing-driven purchasing decision into a trans
 ### Install & run
 
 ```bash
-git clone [https://github.com/mattiarossi/carcost](https://github.com/mattiarossi/carcost) carcost
+git clone https://github.com/mattiarossi/carcost carcost
 cd carcost
 yarn install
 yarn db:migrate     # create data/cars.db and apply migrations
