@@ -8,6 +8,50 @@ Everything runs locally — SQLite database, Node backend, React frontend — wi
 
 ---
 
+## Why this exists
+
+### List prices lie
+
+When comparing two cars, the obvious starting point is the sticker price — but it is almost never what you actually pay, and it rarely means the same thing across models.
+
+Most buyers finance their car through a manufacturer's financial plan, which introduces three variables that the list price completely hides:
+
+- **Deposit** — how much cash you put down on day one varies widely across offers and is sometimes partially covered by a trade-in or a brand incentive.
+- **Guaranteed Future Value (GFV) / balloon payment** — many modern finance plans (PCP, "Easy Next", VFG, etc.) set a contractually guaranteed residual value at the end of the term. A higher GFV means lower monthly instalments, but it also means you are only *renting* the depreciation gap — and if you want to own the car outright at the end, you still owe that balloon. Two cars with similar list prices can have radically different monthly costs depending on how aggressively their brand supports the residual value.
+- **Included mileage cap** — finance plans specify a maximum annual km. Exceed it and you pay a per-km penalty. A plan that looks cheaper on paper because the monthly instalment is lower may carry a 12 000 km/year cap when you actually drive 18 000. The real cost comparison has to use *your* mileage, not the plan's cap.
+
+The only honest comparison metric is: **how much money leaves your pocket over the contract term**, normalised to a monthly figure — deposit amortised, instalments paid, balloon excluded if you plan to hand the car back at the end.
+
+### Running costs compound the complexity
+
+Even if you could compare acquisition costs perfectly, running costs add another layer that is deeply personal:
+
+- A **full hybrid** regenerates braking energy and excels in city traffic. Exactly how much it saves depends on how much of your driving is urban stop-start versus open road.
+- A **mild hybrid** only assists the ICE under acceleration load. Its efficiency gain is modest and varies with driving style. The name "hybrid" is often marketing as much as engineering.
+- A **PHEV** is essentially free to run for the first 40–80 km if you charge at home overnight — but if your daily commute exceeds the electric range, or if you mostly charge on public DC fast chargers, it reverts to a heavy ICE with a battery it cannot use efficiently.
+- A **BEV** has the lowest per-km energy cost *if* you charge at home at a flat overnight tariff. Public fast-charging at peak rates can make it more expensive per km than a petrol car.
+- An **LPG bi-fuel** has lower fuel cost per km than petrol and a larger effective range, but LPG density is lower than petrol so you fill up more often, and the tank network is thinner in some regions.
+- A **diesel** is efficient on long motorway runs but the efficiency advantage erodes in urban use, and ownership costs (AdBlue, DPF servicing, urban access restrictions) need to be factored in.
+
+None of these trade-offs show up on a configurator page.
+
+### Fuel and electricity prices shift the ranking
+
+Even if you knew your exact driving mix, the *ranking* of technologies is not stable — it changes with energy prices. At €1.70/L petrol and €0.25/kWh home electricity, a BEV wins on running cost by a wide margin. At €0.60/kWh public charging and €1.50/L petrol, the advantage shrinks dramatically. An LPG car at €0.75/L LPG beats both over 20 000 km/year on motorways. The "right" technology choice is a function of prices you cannot fully control.
+
+### How this tool helps
+
+The cost comparator solves these problems by:
+
+1. **Importing real financial data** — paste the financing summary from the configurator and the parser extracts deposit, monthly instalment, residual/GFV, duration, and mileage cap. The TCO uses actual contract cash flows, not list price.
+2. **Applying your driving mix** — a usage profile encodes the urban/suburban/motorway split and annual km you actually drive. WLTP consumption figures are weighted by that mix to produce a realistic per-km energy cost for each powertrain.
+3. **Normalising everything to the same unit** — monthly cost, annual energy spend, and total out-of-pocket over a chosen horizon, computed consistently across all cars in your shortlist regardless of fuel type.
+4. **Letting you stress-test the ranking** — the **cost projection chart** lets you pick one variable (petrol price, electricity price, annual km, home charging fraction…) and sweep it across its realistic range. Every car in your comparison is redrawn on the same chart simultaneously. You can see not just which car wins today, but *at what petrol price* a hybrid overtakes a BEV, or *at what annual km* LPG becomes cheaper than petrol — and whether that crossover point falls inside the range of prices you might realistically face over a four-year contract.
+
+The goal is to turn an opaque, marketing-driven purchasing decision into a transparent, quantitative one — without needing a spreadsheet.
+
+---
+
 ## Quickstart
 
 ### Prerequisites
