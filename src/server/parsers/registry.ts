@@ -69,6 +69,16 @@ export function parseSpecs(
 
   const result = specEngine(preprocessed, mergedRules)
 
+  // Make fallback: some configurator exports (e.g. PDF spec sheets) never put
+  // the brand next to the model in a parseable header — it only appears in
+  // legal prose. When the engine can't extract `make` but a brand plugin won
+  // detection, use that plugin's name. Low confidence so the UI still asks the
+  // user to confirm.
+  if (!result.make && chosen.id !== 'generic') {
+    result.make = chosen.displayName
+    result.confidence.make = 'low'
+  }
+
   return {
     result,
     usedPlugin:   chosen.id,

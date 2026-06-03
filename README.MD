@@ -6,6 +6,8 @@ Paste (or drop a PDF) from any car configurator website, define how you drive, a
 
 Everything runs locally — SQLite database, Node backend, React frontend — with no cloud dependency and no data leaving the machine.
 
+![Dashboard](docs/images/dashboard.png)
+
 ---
 
 ## Why this exists
@@ -28,8 +30,8 @@ Even if you could compare acquisition costs perfectly, running costs add another
 
 - A **full hybrid** regenerates braking energy and excels in city traffic. Exactly how much it saves depends on how much of your driving is urban stop-start versus open road.
 - A **mild hybrid** only assists the ICE under acceleration load. Its efficiency gain is modest and varies with driving style. The name "hybrid" is often marketing as much as engineering.
-- A **PHEV** is essentially free to run for the first 40–80 km if you charge at home overnight — but if your daily commute exceeds the electric range, or if you mostly charge on public DC fast chargers, it reverts to a heavy ICE with a battery it cannot use efficiently.
-- A **BEV** has the lowest per-km energy cost *if* you charge at home at a flat overnight tariff. Public fast-charging at peak rates can make it more expensive per km than a petrol car.
+- A **PHEV** is essentially free to run for the first 40–80 km if you charge at home overnight — but if your daily commute exceeds the electric range, or if you mostly charge on public DC fast chargers, it reverts to a heavy ICE with a battery it cannot use efficiently. If you park at home during the day and have solar panels, a PHEV can offset most of its electric consumption at near-zero marginal cost during sunny months — but only if the charging window aligns with production.
+- A **BEV** has the lowest per-km energy cost *if* you charge at home at a flat overnight tariff. Public fast-charging at peak rates can make it more expensive per km than a petrol car. A third scenario that changes the calculus significantly is **home photovoltaic production**: if you can charge during daylight hours from your own panels, the effective per-kWh cost drops close to zero for the solar fraction — in practice anywhere from 30 % to 80 % of your charging depending on panel capacity, battery storage, and whether you commute or work from home. In this case a BEV's running cost advantage over any ICE technology becomes very large and largely immune to grid electricity price movements, making the technology choice much more stable over time.
 - An **LPG bi-fuel** has lower fuel cost per km than petrol and a larger effective range, but LPG density is lower than petrol so you fill up more often, and the tank network is thinner in some regions.
 - A **diesel** is efficient on long motorway runs but the efficiency advantage erodes in urban use, and ownership costs (AdBlue, DPF servicing, urban access restrictions) need to be factored in.
 
@@ -47,6 +49,8 @@ The cost comparator solves these problems by:
 2. **Applying your driving mix** — a usage profile encodes the urban/suburban/motorway split and annual km you actually drive. WLTP consumption figures are weighted by that mix to produce a realistic per-km energy cost for each powertrain.
 3. **Normalising everything to the same unit** — monthly cost, annual energy spend, and total out-of-pocket over a chosen horizon, computed consistently across all cars in your shortlist regardless of fuel type.
 4. **Letting you stress-test the ranking** — the **cost projection chart** lets you pick one variable (petrol price, electricity price, annual km, home charging fraction…) and sweep it across its realistic range. Every car in your comparison is redrawn on the same chart simultaneously. You can see not just which car wins today, but *at what petrol price* a hybrid overtakes a BEV, or *at what annual km* LPG becomes cheaper than petrol — and whether that crossover point falls inside the range of prices you might realistically face over a four-year contract.
+
+![Cost projection chart](docs/images/compare-projection.png)
 
 The goal is to turn an opaque, marketing-driven purchasing decision into a transparent, quantitative one — without needing a spreadsheet.
 
@@ -72,10 +76,25 @@ Open http://localhost:5173.
 
 ### First steps
 
+Your saved models live under **My Cars**:
+
+![My Cars](docs/images/my-cars.png)
+
 1. **Add a car** — go to Cars → Add Car. Paste the specs text copied from the manufacturer's configurator page (or drag a PDF onto the text area). The parser auto-detects the brand and fills in fuel type, consumption, power, CO₂, etc.
+
+   ![Add a car](docs/images/add-car.png)
+
 2. **Add financing** — on the car detail page, paste the financing summary text from the configurator and let the parser extract deposit, monthly instalment, TAN/TAEG, residual value, and so on.
+
+   ![Car detail with technical specs and finance offers](docs/images/car-details.png)
+
 3. **Define a usage profile** — go to Profiles. A profile encodes your driving mix (% urban / suburban / motorway), annual km, fuel prices, and charging behaviour. You can have multiple profiles (e.g. "City 15k km/y", "Mixed 20k km/y").
+
+   ![Compare page — select cars and usage profile](docs/images/compare-profile.png)
+
 4. **Compare** — go to Compare, select two or more cars. The table shows computed monthly cost, annual energy spend, and TCO. Switch to the **Chart** tab to sweep any variable (fuel price, annual km, charging mix) and see how the ranking changes.
+
+   ![Comparison table](docs/images/compare-details.png)
 
 ### Other useful commands
 
@@ -144,23 +163,53 @@ interface ParserPlugin {
 
 ### Built-in plugins
 
-| Plugin ID | `displayName` | Detects |
-|---|---|---|
-| `toyota-it` | Toyota | "toyota", "configura", "toyota financial services" |
-| `hyundai` | Hyundai | "hyundai", brand-specific finance labels |
-| `renault-it` | Renault | "renault", brand-specific spec/finance markers |
-| `generic` | Generic | Catch-all — always scores 0.1, uses shared keyword rules |
+| Plugin ID | `displayName` | Detects | Brand rules |
+|---|---|---|---|
+| `toyota-it` | Toyota | "toyota", "configura", "toyota financial services" | EV range (`Percorrenza max in EV`), battery capacity |
+| `hyundai-it` | Hyundai | "hyundai", `phev …MaxPower`, German `elektrische Reichweite` labels | system power, EV range |
+| `renault-it` | Renault | "renault", `Potenza Massima KW CEE (Cv)`, "e-tech" | power (kW + CV from `80 (160)`), `Prezzo promozionale` cash price |
+| `generic` | Generic | Catch-all — always scores 0.1, owns the shared keyword rules | all generic IT/EN rules (incl. VW sub-cycle keys, since VW has no plugin) |
+
+Each brand plugin now carries its own `specRules` / `financeRules`. These are **prepended** to the generic rule set, so a brand-specific phrasing wins over a generic one when its plugin is selected. Truly generic phrasings — and any maker that has no dedicated plugin (e.g. Volkswagen) — are served by `generic`.
 
 ### Adding a new brand plugin
 
 1. Create `src/server/parsers/plugins/<brand>/index.ts` exporting a `ParserPlugin` object.
 2. Implement `detectSpecs()` and `detectFinance()` — fast string checks only, no async.
-3. Optionally add brand-specific `specRules` / `financeRules` that shadow generic rules.
+3. Add the brand-specific `specRules` / `financeRules` that handle phrasings only this maker emits. Keep generic synonyms in `keywords.ts`; a rule belongs in the plugin only when the wording is proprietary to the brand's configurator (see the existing Toyota / Hyundai / Renault plugins for real examples).
 4. Register the plugin in `src/server/parsers/registry.ts`.
+
+A `SpecRule` is either a `line` rule (regex tested against a whole line) or a `kv` rule (canonical key phrases fuzzy-matched against the key side of a delimited pair). A `FinanceRule` is a single regex with one or two capture groups. Both rule types are defined in `keywords.ts`:
 
 ```typescript
 // src/server/parsers/plugins/volkswagen/index.ts
 import type { ParserPlugin } from '../../plugin.js'
+import type { SpecRule, FinanceRule } from '../../keywords.js'
+import { parseItalianNumber, extractFirstNumber } from '../../utils.js'
+
+// Brand-specific rules — prepended to the generic set, so they shadow
+// generic rules via "first high-confidence match wins".
+const specRules: SpecRule[] = [
+  // VW configurator line: "Potenza massima 110 kW"
+  { type: 'line',
+    patterns: [/potenza massima\s+[\d.,]+\s*kW/i],
+    field: 'engine_power_kw',
+    extract: (_, line) => {
+      const m = line.match(/potenza massima\s+([\d.,]+)\s*kW/i)
+      return m ? parseItalianNumber(m[1]) : undefined
+    },
+    confidence: 'high' },
+  // VW splits the WLTP cycle into low/medium bands — map both to the urban figure
+  { type: 'kv',
+    keys: ['Consumo ciclo di prova basso', 'Consumo ciclo di prova medio'],
+    field: 'fuel_consumption_urban',
+    extract: (v) => extractFirstNumber(v),
+    confidence: 'high' },
+]
+
+const financeRules: FinanceRule[] = [
+  { pattern: /[Pp]rezzo\s+scontato\s+VW[^€\d]*([\d.,]+)\s*€/u, field: 'cash_price' },
+]
 
 export const volkswagenPlugin: ParserPlugin = {
   id: 'volkswagen-de',
@@ -181,22 +230,27 @@ export const volkswagenPlugin: ParserPlugin = {
     // similar pattern…
     return text.toLowerCase().includes('volkswagen') ? 0.5 : 0
   },
+
+  specRules,
+  financeRules,
 }
 ```
 
-Then in `src/server/parsers/registry.ts`:
+Then register it in `src/server/parsers/registry.ts` (brand plugins first, `generic` always last):
 
 ```typescript
 import { volkswagenPlugin } from './plugins/volkswagen/index.js'
 
-export const registry: ParserPlugin[] = [
+const PLUGINS: ParserPlugin[] = [
   toyotaPlugin,
-  hyundaiPlugin,
   renaultPlugin,
+  hyundaiPlugin,
   volkswagenPlugin,  // ← add here
-  genericPlugin,     // always last
+  genericPlugin,     // always last (catch-all)
 ]
 ```
+
+> The VW example is illustrative — there is no Volkswagen plugin in the repo, so VW configurator text currently routes to `generic`, which already carries the VW sub-cycle keys shown above.
 
 ### UI detection pill
 

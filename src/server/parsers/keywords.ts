@@ -75,15 +75,7 @@ export const specRules: SpecRule[] = [
     extract: (_, line) => { const m = line.match(/potenza massima\s+([\d.,]+)\s*kW/i); return m ? parseItalianNumber(m[1]) : undefined },
     confidence: 'high' },
 
-  // ── Renault "Potenza Massima KWCEE (Cv) 80 (160)" — kW first, CV in parens ──
-  { type: 'line', patterns: [/potenza massima\s+kw\s*cee\s*\(cv\)\s*[\d.,]+\s*\([\d.,]+\)/i],
-    field: 'engine_power_cv',
-    extract: (_, line) => { const m = line.match(/potenza massima\s+kw\s*cee\s*\(cv\)\s*[\d.,]+\s*\(([\d.,]+)\)/i); return m ? parseItalianNumber(m[1]) : undefined },
-    confidence: 'high' },
-  { type: 'line', patterns: [/potenza massima\s+kw\s*cee\s*\(cv\)\s*[\d.,]+/i],
-    field: 'engine_power_kw',
-    extract: (_, line) => { const m = line.match(/potenza massima\s+kw\s*cee\s*\(cv\)\s*([\d.,]+)/i); return m ? parseItalianNumber(m[1]) : undefined },
-    confidence: 'high' },
+  // Renault "Potenza Massima KW CEE (Cv) 80 (160)" → renault plugin specRules
 
   // ── CO2 inline (no delimiter): "Emissioni CO2 ciclo di prova combinato 130 g/km" ──
   { type: 'line', patterns: [/emissioni\s+co2.*(\d[\d,.]+)\s*g\/km/i],
@@ -104,10 +96,9 @@ export const specRules: SpecRule[] = [
 
   // ── System / total power ──────────────────────────────────────────────
   { type: 'kv',
+    // Hyundai "phev Combined Output / MaxPower" labels → hyundai plugin specRules
     keys: ['potenza massima totale', 'potenza sistema', 'potenza complessiva', 'system power',
-           'combined power', 'potenza totale kW', 'potenza motore sistema',
-           'phev Combined Output Kw phev Combined Output Hp Label',  // Hyundai
-           'phev MaxPower Kw phev MaxPower Hp Label'],               // Hyundai fallback
+           'combined power', 'potenza totale kW', 'potenza motore sistema'],
     field: 'engine_power_kw',
     // handles "211,8 / 288" (kW / CV) or plain "132.4 / 180" — take first number
     extract: (v) => { const m = v.match(/([\d.,]+)\s*(?:kW|\/)/i); return m ? parseItalianNumber(m[1]) : extractFirstNumber(v) },
@@ -146,7 +137,10 @@ export const specRules: SpecRule[] = [
     keys: ['Velocità max. (km/h)', 'velocità massima', 'velocità max', 'top speed',
            'Vmax', 'velocità di punta', 'Höchstgeschwindigkeit', 'max speed km/h'],
     field: 'top_speed_kmh',
-    extract: (v) => extractFirstNumber(v),
+    // Guard against fuzzy collisions (e.g. boot "Capacità massima (VDA)(l) 1721"
+    // matching "velocità massima"): reject implausible speeds so the real
+    // "Velocità max (km/h)" row can still claim the field.
+    extract: (v) => { const n = extractFirstNumber(v); return n !== undefined && n > 0 && n <= 500 ? n : undefined },
     confidence: 'high' },
   { type: 'kv',
     keys: ['Cilindrata (cc)', 'cilindrata', 'displacement', 'engine displacement',
@@ -170,18 +164,10 @@ export const specRules: SpecRule[] = [
 
   // ── EV range ──────────────────────────────────────────────────────────
   { type: 'kv',
+    // Hyundai (elektrische Reichweite…) → hyundai plugin; Toyota (Percorrenza max in EV) → toyota plugin
     keys: ['autonomia elettrica', 'autonomia WLTP', 'range WLTP', 'electric range',
            'autonomia km', 'autonomia combinata WLTP', 'Reichweite WLTP', 'zero emission range',
-           'percorrenza massima elettrica',
-           'elektrische Reichweite City voller Batterie WLTP', 'elektrische Reichweite WLTP',
-           'max elektrische Reichweite City voller Batterie km nach WLTP',
-           // Hyundai configurator exact key:
-           'max. elektrische Reichweite (City) bei voller Batterie (km) nach WLTP',
-           'autonomia elettrica WLTP City', 'max electric range city full battery',
-           // Hyundai Italian configurator:
-           'Autonomia elettrica WLTP (km)', 'autonomia solo elettrica WLTP',
-           // Toyota configurator:
-           'Percorrenza max in EV WLTP', 'Percorrenza max in EV - WLTP'],
+           'percorrenza massima elettrica'],
     field: 'ev_range_km',
     extract: (v) => extractFirstNumber(v),
     confidence: 'high' },
@@ -191,9 +177,8 @@ export const specRules: SpecRule[] = [
     keys: ['capacità batteria', 'capacità totale batteria', 'battery capacity',
            'batteria kWh', 'capacità accumulatore', 'total battery kWh',
            'Kapazität Batterie (kWh)', 'Batteriekapazität kWh',
-           'Capacità totale della batteria (kWh)', 'Capacità batteria (kWh)',
-           // Toyota configurator:
-           'Capacità della batteria'],
+           // Toyota "Capacità della batteria" → toyota plugin specRules
+           'Capacità totale della batteria (kWh)', 'Capacità batteria (kWh)'],
     field: 'battery_capacity_kwh',
     extract: (v) => extractFirstNumber(v),
     confidence: 'high' },
@@ -344,8 +329,7 @@ export const financeRules: FinanceRule[] = [
   // Discounted cash price (actual price without financing — use this for TCO)
   { pattern: /[Pp]rezzo\s+in\s+promozione\s+senza\s+finanziamento[^€\d]*([\d.,]+)\s*€/u,     field: 'cash_price' },
   { pattern: /[Pp]rezzo\s+(?:scontato|promo(?:zionale)?)\s+(?:senza\s+finanziamento|al\s+pubblico)[^€\d]*([\d.,]+)\s*€/u, field: 'cash_price' },
-  // Renault: "Prezzo promozionale\n25.924,45 €" (standalone, no qualifier)
-  { pattern: /[Pp]rezzo\s+promozionale[^€\d]*([\d.,]+)\s*€/u,                                field: 'cash_price' },
+  // Renault standalone "Prezzo promozionale" → renault plugin financeRules
   { pattern: /[Aa]nticipo\s+([\d.,]+)\s*€/u,                                                  field: 'deposit' },
   { pattern: /(\d+)\s+rate\s+(?:mensili\s+)?(?:da|di)\s+([\d.,]+)\s*€/u,                     field: ['n_installments', 'monthly_installment'] },
   { pattern: /(\d+)\s+(?:mesi|mensilità)\s+.*?([\d.,]+)\s*€\s*\/?\s*(?:mese|m(?:es)?\.?)/ui, field: ['n_installments', 'monthly_installment'] },
