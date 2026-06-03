@@ -4,7 +4,9 @@
     "cars": "My Cars",
     "compare": "Compare",
     "profiles": "Profiles",
-    "settings": "Settings"
+    "settings": "Settings",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "dashboard": {
     "title": "Dashboard",

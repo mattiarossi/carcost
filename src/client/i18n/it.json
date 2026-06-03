@@ -4,7 +4,9 @@
     "cars": "Le mie auto",
     "compare": "Confronta",
     "profiles": "Profili",
-    "settings": "Impostazioni"
+    "settings": "Impostazioni",
+    "openMenu": "Apri menu",
+    "closeMenu": "Chiudi menu"
   },
   "dashboard": {
     "title": "Dashboard",

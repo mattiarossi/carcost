@@ -768,9 +768,9 @@ function ComparePage() {
 
       {/* ── CHART TAB ─────────────────────────────────────────────────── */}
       {viewTab === 'chart' && selectedIds.length > 0 && (
-        <div className="flex gap-4 items-start">
-          {/* Sliders — sticky column, scrollable list inside */}
-          <div style={{ flexShrink: 0, width: 240, position: 'sticky', top: 16 }}>
+        <div className="flex flex-col gap-4 md:flex-row md:items-start">
+          {/* Sliders — full width on mobile; sticky 240px column from md up */}
+          <div className="w-full md:w-60 md:shrink-0 md:sticky md:top-4">
             <Panel
               title={t('compare.sweep.title')}
               badge="sliders"

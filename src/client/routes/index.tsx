@@ -18,7 +18,7 @@ function HomePage() {
       </div>
 
       {/* Quick actions */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link to="/cars" className="card group block no-underline hover:border-primary-300 transition-colors">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
@@ -60,7 +60,7 @@ function HomePage() {
       {/* How it works */}
       <div className="card">
         <h2 className="mb-5" style={{ color: 'var(--color-text)' }}>{t('dashboard.howItWorks')}</h2>
-        <div className="grid grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
           {([
             ['step1Title', 'step1Desc'],
             ['step2Title', 'step2Desc'],
