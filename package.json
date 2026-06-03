@@ -10,6 +10,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
+    "predb:migrate": "node -e \"require('fs').mkdirSync('data',{recursive:true})\"",
     "db:migrate": "drizzle-kit migrate"
   },
   "dependencies": {
