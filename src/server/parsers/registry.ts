@@ -7,12 +7,14 @@ import { genericPlugin } from './plugins/generic/index.js'
 import { toyotaPlugin }  from './plugins/toyota/index.js'
 import { renaultPlugin } from './plugins/renault/index.js'
 import { hyundaiPlugin } from './plugins/hyundai/index.js'
+import { cupraPlugin }   from './plugins/cupra/index.js'
 
 // Ordered: brand plugins first, generic last (catch-all)
 const PLUGINS: ParserPlugin[] = [
   toyotaPlugin,
   renaultPlugin,
   hyundaiPlugin,
+  cupraPlugin,
   genericPlugin,
 ]
 

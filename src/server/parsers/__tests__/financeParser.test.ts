@@ -52,6 +52,25 @@ describe('Toyota Yaris Cross finance', () => {
   it('monthly_installment ~198',  () => approx(result.monthly_installment!, 198.71, 1))
 })
 
+// ─── CUPRA Terramar ───────────────────────────────────────────────────────────
+
+describe('CUPRA Terramar finance', () => {
+  const result = parseFinance(load('cupra-terramar.txt'))
+
+  it('monthly_installment ~295',  () => approx(result.monthly_installment!, 295, 1))
+  it('deposit ~9800',             () => approx(result.deposit!, 9800, 1))
+  it('tan_pct ~6.45',             () => approx(result.tan_pct!, 6.45, 0.01))
+  it('taeg_pct ~7.36',            () => approx(result.taeg_pct!, 7.36, 0.01))
+  it('duration_months is 35',     () => expect(result.duration_months).toBe(35))
+  it('annual_km_limit is 30000',  () => expect(result.annual_km_limit).toBe(30000))
+  // precise GFV from prose, not the footnote-corrupted "30.094€1" headline
+  it('residual_value ~30093.97',  () => approx(result.residual_value!, 30093.97, 1))
+  // keys-in-hand price, used for TCO instead of list price
+  it('cash_price ~43621.42',      () => approx(result.cash_price!, 43621.42, 1))
+  it('total_financed ~34201.42',  () => approx(result.total_financed!, 34201.42, 1))
+  it('total_repayable ~40629.87', () => approx(result.total_repayable!, 40629.87, 1))
+})
+
 // ─── Renault CAPTUR ───────────────────────────────────────────────────────────
 
 describe('Renault CAPTUR finance', () => {

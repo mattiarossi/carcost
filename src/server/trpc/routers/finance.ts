@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc.js'
 import { car_finance } from '../../db/schema.js'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 const financeFields = z.object({
@@ -41,9 +41,16 @@ export const financeRouter = router({
     .mutation(({ ctx, input }) => {
       const { car_id, ...rest } = input
       const id = nanoid()
-      console.log('[finance.create] inserting', { id, car_id, ...rest })
+      // Auto-activate the first imported offer: if the car has no active offer
+      // yet, make this one active so it's immediately comparable.
+      const hasActive = ctx.db.select({ id: car_finance.id })
+        .from(car_finance)
+        .where(and(eq(car_finance.car_id, car_id), eq(car_finance.is_active, 1)))
+        .get()
+      const is_active = hasActive ? 0 : 1
+      console.log('[finance.create] inserting', { id, car_id, is_active, ...rest })
       try {
-        ctx.db.insert(car_finance).values({ id, car_id, ...rest }).run()
+        ctx.db.insert(car_finance).values({ id, car_id, is_active, ...rest }).run()
       } catch (e) {
         console.error('[finance.create] DB error', e)
         throw e

@@ -71,6 +71,54 @@ describe('Volkswagen T-Roc MHEV', () => {
   it('transmission is automatic',      () => expect(result.transmission).toBe('automatic'))
 })
 
+// ─── CUPRA Terramar PHEV ─────────────────────────────────────────────────────
+
+describe('CUPRA Terramar PHEV', () => {
+  const result = parseSpecs(load('cupra-terramar.txt'))
+
+  it('make is CUPRA',                  () => expect(result.make).toBe('CUPRA'))
+  it('model is TERRAMAR',              () => expect(result.model).toBe('TERRAMAR'))
+  it('trim is Tribe Edition',          () => expect(result.trim).toBe('Tribe Edition'))
+  it('fuel_type is PHEV',              () => expect(result.fuel_type).toBe('PHEV'))
+  it('transmission is automatic',      () => expect(result.transmission).toBe('automatic'))
+  it('engine_power_kw is 150',         () => expect(result.engine_power_kw).toBe(150))
+  it('engine_power_cv is 204',         () => expect(result.engine_power_cv).toBe(204))
+  it('top_speed_kmh is 205',           () => expect(result.top_speed_kmh).toBe(205))
+  it('torque_nm is 350',               () => expect(result.torque_nm).toBe(350))
+  // charge-sustaining combined, not the 1.7 l weighted figure
+  it('fuel_consumption_combined ~5.8', () => approx(result.fuel_consumption_combined!, 5.8, 0.1))
+  it('ev_consumption_combined ~13.8',  () => approx(result.ev_consumption_combined!, 13.8, 0.1))
+  // combined electric range, not the 142/145/117 urban/equivalent variants
+  it('ev_range_km is 118',             () => expect(result.ev_range_km).toBe(118))
+  it('co2_gkm is 37',                  () => expect(result.co2_gkm).toBe(37))
+  it('charge_time_ac_h ~2.5',          () => approx(result.charge_time_ac_h!, 2.5, 0.01))
+  it('charge_time_10_80_min is 26',    () => expect(result.charge_time_10_80_min).toBe(26))
+})
+
+// ─── CUPRA Raval BEV ─────────────────────────────────────────────────────────
+
+describe('CUPRA Raval BEV', () => {
+  const result = parseSpecs(load('cupra-raval.txt'))
+
+  it('make is CUPRA',                  () => expect(result.make).toBe('CUPRA'))
+  it('model is RAVAL',                 () => expect(result.model).toBe('RAVAL'))
+  it('trim is Launch Edition Plus',    () => expect(result.trim).toBe('Launch Edition Plus'))
+  // no "BEV"/"100% elettrico" marker in the text — inferred from absence of ICE wording
+  it('fuel_type is BEV',               () => expect(result.fuel_type).toBe('BEV'))
+  it('engine_power_cv is 211',         () => expect(result.engine_power_cv).toBe(211))
+  it('top_speed_kmh is 160',           () => expect(result.top_speed_kmh).toBe(160))
+  it('torque_nm is 290',               () => expect(result.torque_nm).toBe(290))
+  it('ev_consumption_combined ~13.9',  () => approx(result.ev_consumption_combined!, 13.9, 0.1))
+  // combined range, not the 568 km urban figure
+  it('ev_range_km is 438',             () => expect(result.ev_range_km).toBe(438))
+  it('co2_gkm is 0',                   () => expect(result.co2_gkm).toBe(0))
+  it('charge_time_ac_h ~5.5',          () => approx(result.charge_time_ac_h!, 5.5, 0.01))
+  it('charge_time_10_80_min is 24',    () => expect(result.charge_time_10_80_min).toBe(24))
+  // battery capacity is genuinely absent from CUPRA spec sheets; metrics fall back
+  // to the stated EV consumption, so it must stay undefined rather than be guessed
+  it('battery_capacity_kwh undefined', () => expect(result.battery_capacity_kwh).toBeUndefined())
+})
+
 // ─── Renault CAPTUR HEV ──────────────────────────────────────────────────────
 
 describe('Renault CAPTUR HEV', () => {

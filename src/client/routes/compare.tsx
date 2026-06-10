@@ -368,6 +368,9 @@ function ComparePage() {
   const trpc = useTRPC()
 
   const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [carSearch, setCarSearch] = useState('')
+  const [fuelFilter, setFuelFilter] = useState<string>('all')
+  const [makeFilter, setMakeFilter] = useState<string>('all')
   const [profile, setProfile] = useState<ProfileValues>(PROFILE_DEFAULTS)
   // committedProfile only updates on slider release — drives the chart query
   const [committedProfile, setCommittedProfile] = useState<ProfileValues>(PROFILE_DEFAULTS)
@@ -432,6 +435,41 @@ function ComparePage() {
   const toggleCar = useCallback((id: string) => {
     setSelectedIds(ids => ids.includes(id) ? ids.filter(x => x !== id) : [...ids, id])
   }, [])
+
+  // ── Car selector: search + fuel-type filtering ──────────────────────────────
+  // Fuel pills are derived from the catalog so we never show an empty filter.
+  const FUEL_ORDER = ['ICE', 'MHEV', 'HEV', 'PHEV', 'BEV', 'LPG', 'CNG']
+  const fuelTypes = useMemo(() => {
+    const present = new Set<string>((carsQ.data ?? []).map(c => c.fuel_type).filter(Boolean))
+    return FUEL_ORDER.filter(f => present.has(f))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carsQ.data])
+
+  const makes = useMemo(() => {
+    const present = new Set((carsQ.data ?? []).map(c => c.make).filter(Boolean) as string[])
+    return [...present].sort((a, b) => a.localeCompare(b))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carsQ.data])
+
+  // Visible cars: those matching the search + fuel filter, plus any already-selected
+  // car (so a selection can never be hidden by an active filter), selected first.
+  const visibleCars = useMemo(() => {
+    const cars = carsQ.data ?? []
+    const q = carSearch.trim().toLowerCase()
+    const matches = (c: typeof cars[number]) => {
+      if (fuelFilter !== 'all' && c.fuel_type !== fuelFilter) return false
+      if (makeFilter !== 'all' && c.make !== makeFilter) return false
+      if (!q) return true
+      return `${c.make} ${c.model} ${c.trim ?? ''} ${c.fuel_type}`.toLowerCase().includes(q)
+    }
+    return cars
+      .filter(c => selectedIds.includes(c.id) || matches(c))
+      .sort((a, b) => {
+        const as = selectedIds.includes(a.id), bs = selectedIds.includes(b.id)
+        if (as !== bs) return as ? -1 : 1
+        return `${a.make} ${a.model}`.localeCompare(`${b.make} ${b.model}`)
+      })
+  }, [carsQ.data, carSearch, fuelFilter, makeFilter, selectedIds])
 
   const set = useCallback(<K extends keyof ProfileValues>(key: K, val: number) => {
     setProfile(p => ({ ...p, [key]: val }))
@@ -582,40 +620,110 @@ function ComparePage() {
             {t('compare.noCars')}
           </p>
         ) : (
-          <div className="flex flex-wrap gap-2">
-            {carsQ.data.map(car => {
-              const checked = selectedIds.includes(car.id)
-              return (
-                <button
-                  key={car.id}
-                  onClick={() => toggleCar(car.id)}
-                  className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
-                  style={{
-                    borderColor: checked ? 'var(--color-accent)' : 'var(--color-border)',
-                    background:  checked ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : 'var(--color-surface-subtle)',
-                    color: 'var(--color-text)',
-                  }}
+          <div className="flex flex-col gap-3">
+            {/* Search + fuel-type filters */}
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="search"
+                value={carSearch}
+                onChange={e => setCarSearch(e.target.value)}
+                placeholder={t('compare.searchCars')}
+                className="min-w-[180px] flex-1 rounded border px-2 py-1 text-sm"
+                style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)' }}
+              />
+              {makes.length > 1 && (
+                <select
+                  value={makeFilter}
+                  onChange={e => setMakeFilter(e.target.value)}
+                  className="rounded border px-2 py-1 text-sm"
+                  style={{ borderColor: 'var(--color-border)', background: 'var(--color-bg)', color: 'var(--color-text)' }}
                 >
-                  {/* Checkbox visual */}
-                  <span className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-sm border"
-                    style={{
-                      borderColor: checked ? 'var(--color-accent)' : 'var(--color-border)',
-                      background:  checked ? 'var(--color-accent)' : 'transparent',
-                      color: '#fff',
-                    }}>
-                    {checked && <span style={{ fontSize: 9, lineHeight: 1 }}>✓</span>}
-                  </span>
-                  <span>
-                    <span className="font-medium">{car.make} {car.model}</span>
-                    {car.trim && <span className="ml-1 opacity-60">{car.trim}</span>}
-                    <span className="ml-2 rounded px-1 font-mono text-xs"
-                      style={{ background: 'var(--color-bg)', color: 'var(--color-text-muted)' }}>
-                      {car.fuel_type}
-                    </span>
-                  </span>
-                </button>
-              )
-            })}
+                  <option value="all">{t('compare.fuelAll')}</option>
+                  {makes.map(m => (
+                    <option key={m} value={m}>{m}</option>
+                  ))}
+                </select>
+              )}
+              {fuelTypes.length > 1 && (
+                <div className="flex flex-wrap gap-1">
+                  {['all', ...fuelTypes].map(f => {
+                    const active = fuelFilter === f
+                    return (
+                      <button
+                        key={f}
+                        onClick={() => setFuelFilter(f)}
+                        className="rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors"
+                        style={{
+                          borderColor: active ? 'var(--color-accent)' : 'var(--color-border)',
+                          background:  active ? 'var(--color-accent)' : 'transparent',
+                          color:       active ? '#fff' : 'var(--color-text-muted)',
+                        }}
+                      >
+                        {f === 'all' ? t('compare.fuelAll') : f}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Car chips */}
+            {visibleCars.length === 0 ? (
+              <p className="text-sm" style={{ color: 'var(--color-text-muted)' }}>
+                {t('compare.noMatch')}
+              </p>
+            ) : (
+              <div className="flex flex-wrap gap-2">
+                {visibleCars.map(car => {
+                  const checked = selectedIds.includes(car.id)
+                  // Cars without an active finance offer can't be compared (compareData
+                  // drops them). Block selecting them, but keep an already-selected one
+                  // clickable so it can still be removed.
+                  const noFinance = !car.has_active_finance
+                  const disabled  = noFinance && !checked
+                  return (
+                    <button
+                      key={car.id}
+                      onClick={() => { if (!disabled) toggleCar(car.id) }}
+                      disabled={disabled}
+                      title={noFinance ? t('compare.noActiveFinance') : undefined}
+                      className="flex items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors"
+                      style={{
+                        borderColor: checked ? 'var(--color-accent)' : 'var(--color-border)',
+                        background:  checked ? 'color-mix(in srgb, var(--color-accent) 12%, transparent)' : 'var(--color-surface-subtle)',
+                        color: 'var(--color-text)',
+                        opacity: disabled ? 0.5 : 1,
+                        cursor: disabled ? 'not-allowed' : 'pointer',
+                      }}
+                    >
+                      {/* Checkbox visual */}
+                      <span className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-sm border"
+                        style={{
+                          borderColor: checked ? 'var(--color-accent)' : 'var(--color-border)',
+                          background:  checked ? 'var(--color-accent)' : 'transparent',
+                          color: '#fff',
+                        }}>
+                        {checked && <span style={{ fontSize: 9, lineHeight: 1 }}>✓</span>}
+                      </span>
+                      <span>
+                        <span className="font-medium">{car.make} {car.model}</span>
+                        {car.trim && <span className="ml-1 opacity-60">{car.trim}</span>}
+                        <span className="ml-2 rounded px-1 font-mono text-xs"
+                          style={{ background: 'var(--color-bg)', color: 'var(--color-text-muted)' }}>
+                          {car.fuel_type}
+                        </span>
+                        {noFinance && (
+                          <span className="ml-1.5 rounded px-1 text-xs"
+                            style={{ background: 'color-mix(in srgb, #f59e0b 18%, transparent)', color: '#b45309' }}>
+                            {t('compare.noFinanceBadge')}
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  )
+                })}
+              </div>
+            )}
           </div>
         )}
       </Panel>

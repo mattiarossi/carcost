@@ -168,6 +168,7 @@ interface ParserPlugin {
 | `toyota-it` | Toyota | "toyota", "configura", "toyota financial services" | EV range (`Percorrenza max in EV`), battery capacity |
 | `hyundai-it` | Hyundai | "hyundai", `phev …MaxPower`, German `elektrische Reichweite` labels | system power, EV range |
 | `renault-it` | Renault | "renault", `Potenza Massima KW CEE (Cv)`, "e-tech" | power (kW + CV from `80 (160)`), `Prezzo promozionale` cash price |
+| `cupra-it` | CUPRA | "cupra", "codice di configurazione", "CUPRA Connect/Garage/Way" | power (`150 kW (204 CV)`), DSG→automatic, positional speed/torque row, AC/DC charge times; `preprocessSpecs` canonicalises the noisy WLTP sub-cycle emissions block (combined petrol/electric/range) and strips the legal section; finance: keys-in-hand `cash_price`, `Durata N Rate`→duration, `Percorrenza` cap, precise prose GFV |
 | `generic` | Generic | Catch-all — always scores 0.1, owns the shared keyword rules | all generic IT/EN rules (incl. VW sub-cycle keys, since VW has no plugin) |
 
 Each brand plugin now carries its own `specRules` / `financeRules`. These are **prepended** to the generic rule set, so a brand-specific phrasing wins over a generic one when its plugin is selected. Truly generic phrasings — and any maker that has no dedicated plugin (e.g. Volkswagen) — are served by `generic`.

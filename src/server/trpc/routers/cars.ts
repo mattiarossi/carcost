@@ -1,13 +1,23 @@
 import { z } from 'zod'
 import { router, publicProcedure } from '../trpc.js'
-import { cars } from '../../db/schema.js'
+import { cars, car_finance } from '../../db/schema.js'
 import { eq } from 'drizzle-orm'
 import { nanoid } from 'nanoid'
 
 export const carsRouter = router({
-  list: publicProcedure.query(({ ctx }) =>
-    ctx.db.select().from(cars).all()
-  ),
+  // Each row carries `has_active_finance` so the UI can flag cars that can't be
+  // compared yet — compareData drops any car without an active finance offer.
+  list: publicProcedure.query(({ ctx }) => {
+    const rows = ctx.db.select().from(cars).all()
+    const active = new Set(
+      ctx.db.select({ car_id: car_finance.car_id })
+        .from(car_finance)
+        .where(eq(car_finance.is_active, 1))
+        .all()
+        .map(r => r.car_id),
+    )
+    return rows.map(r => ({ ...r, has_active_finance: active.has(r.id) }))
+  }),
 
   get: publicProcedure
     .input(z.object({ id: z.string() }))
